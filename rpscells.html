@@ -11,23 +11,23 @@
 			var mouseX = 0;
 			var mouseY = 0;
 			var pause = false;
-			var size = 4; // diameter of a cell in pixels
+			var size = 2; // diameter of a cell in pixels
 
 			canvasResize();
 
-			var arry = Array(Math.round(canvas.width/size));
+			var arry = Array(Math.round(canvas.height));
 
 			for(var i=0; i<arry.length; i++) {
-			  arry[i] = Array(Math.round(canvas.height/size));
+			  arry[i] = Array(Math.round(canvas.width));
 				for(var j=0; j<arry[i].length; j++) {
 					arry[i][j] = Math.trunc(3*Math.random());
 				}
 			}
 
-			var temparry = Array(Math.round(canvas.width/size));
+			var temparry = Array(Math.round(canvas.height/size));
 
 			for(var i=0; i<arry.length; i++) {
-				temparry[i] = Array(Math.round(canvas.height/size));
+				temparry[i] = Array(Math.round(canvas.width/size));
 			}
 
 			canvas.addEventListener('mousedown', onClick);
@@ -83,19 +83,19 @@
 			function fillscreen(){
 				ctx.fillStyle = canvascolor;
 				ctx.fillRect(0, 0, canvas.width, canvas.height);
-				ctx.font = canvas.width / 30 + "px Arial";
-				ctx.fillStyle = "rgba(255, 245, 80, 1)";
-
-				ctx.font = canvas.width / 30 + "px Arial";
-				if(pause){
-      		ctx.fillText("paused", 35*canvas.width/40, 19*canvas.height/20);
-				}
-
-				ctx.fillStyle = "rgba(255, 245, 120, 1)";
-				ctx.font = canvas.width / 80 + "px Arial";
-				ctx.fillText("click and hold to do things.", canvas.width/40, 4.8*canvas.height/40);
-				ctx.fillText("press m to switch mouse modes.", canvas.width/40, 5.8*canvas.height/40);
-				ctx.fillText("press space to pause.", canvas.width/40, 6.8*canvas.height/40);
+				// ctx.font = canvas.width / 30 + "px Arial";
+				// ctx.fillStyle = "rgba(255, 245, 80, 1)";
+				//
+				// ctx.font = canvas.width / 30 + "px Arial";
+				// if(pause){
+      	// 	ctx.fillText("paused", 35*canvas.width/40, 19*canvas.height/20);
+				// }
+				//
+				// ctx.fillStyle = "rgba(255, 245, 120, 1)";
+				// ctx.font = canvas.width / 80 + "px Arial";
+				// ctx.fillText("click and hold to do things.", canvas.width/40, 4.8*canvas.height/40);
+				// ctx.fillText("press m to switch mouse modes.", canvas.width/40, 5.8*canvas.height/40);
+				// ctx.fillText("press space to pause.", canvas.width/40, 6.8*canvas.height/40);
 				//ctx.fillText("use number keys to change zoom.", canvas.width/50, 8.4*canvas.height/40);
 
 
@@ -137,22 +137,33 @@
 				for(var i = 0; i < arry.length; i++){
 					for(var j = 0; j < arry[i].length; j++){
 						arry[i][j] = temparry[i][j];
-						ctx.fillStyle = colors[arry[i][j]];
-						ctx.fillRect(i*size, j*size, size, size);
+						// ctx.fillStyle = colors[arry[i][j]];
+						// ctx.fillRect(i*size, j*size, size, size);
 					}
 				}
 
+				var imgdat = ctx.createImageData(arry[0].length, arry.length);
+				arry.flat().forEach((item, index) => {
+					imgdat.data[4*index] = [0,0,0][item];
+					imgdat.data[4*index+1] = [255,0,0][item];
+					imgdat.data[4*index+2] = [255,139,255][item];
+					imgdat.data[4*index+3] = 255;
+				});
+				ctx.putImageData(imgdat, 0, 0);
 
 			}, 10);
 
 
 			window.onresize = canvasResize;
 			function canvasResize() {
-			  canvas.width  = window.innerWidth;
-			  canvas.height = window.innerHeight;
+			  canvas.width  = window.innerWidth/size;
+			  canvas.height = window.innerHeight/size;
 			  ctx.fillStyle = '#13171A';
 			  //ctx.fillStyle = canvascolor;
 			  ctx.fillRect(0, 0, canvas.width, canvas.height);
+				canvas.style = "transform: scale("+size+") translate("+(canvas.width/size)+"px,"+(canvas.height/size)+"px);";
+
+				// ctx.scale(size,size);
 			}
 
 		</script>
