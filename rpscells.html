@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html style="padding:0;margin:0;">
+	<body style="padding:0;margin:0;overflow: hidden;">
+		<canvas id="screen"></canvas>
+		<script>
+			canvascolor = "rgba(19, 23, 26, 1)";
+			var canvas = document.getElementById('screen');
+			var ctx = canvas.getContext('2d');
+
+			var click = false
+			var mouseX = 0;
+			var mouseY = 0;
+			var pause = false;
+			var size = 4; // diameter of a cell in pixels
+
+			canvasResize();
+
+			var arry = Array(Math.round(canvas.width/size));
+
+			for(var i=0; i<arry.length; i++) {
+			  arry[i] = Array(Math.round(canvas.height/size));
+				for(var j=0; j<arry[i].length; j++) {
+					arry[i][j] = Math.trunc(3*Math.random());
+				}
+			}
+
+			var temparry = Array(Math.round(canvas.width/size));
+
+			for(var i=0; i<arry.length; i++) {
+				temparry[i] = Array(Math.round(canvas.height/size));
+			}
+
+			canvas.addEventListener('mousedown', onClick);
+			canvas.addEventListener("mouseup", onRelease);
+			canvas.addEventListener("wheel", scroll)
+			canvas.addEventListener('mouseleave', onMouseLeave);
+			canvas.addEventListener('mousemove', onMouseMove);
+			document.addEventListener('keydown', (event) => {
+			  const keyName = event.key;
+				switch(keyName){
+					case 'Control':
+						return;
+					case 'Escape':
+						return;
+					case ' ':
+						pause = !pause;
+						return;
+				}
+			}, false);
+
+
+			function onClick(event){
+				click = true;
+			}
+
+			function onRelease(event){
+				click = false;
+			}
+
+			function onMouseMove(event){
+			  mouseX = event.pageX;
+			  mouseY = event.pageY;
+			}
+
+			function onMouseLeave(event){
+				click = false;
+			}
+
+			class Item{
+				constructor(x, y){
+					this.x = x;
+					this.y = y;
+				}
+				calc(){
+
+				}
+				draw(){
+
+				}
+			}
+
+
+			function fillscreen(){
+				ctx.fillStyle = canvascolor;
+				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.font = canvas.width / 30 + "px Arial";
+				ctx.fillStyle = "rgba(255, 245, 80, 1)";
+
+				ctx.font = canvas.width / 30 + "px Arial";
+				if(pause){
+      		ctx.fillText("paused", 35*canvas.width/40, 19*canvas.height/20);
+				}
+
+				ctx.fillStyle = "rgba(255, 245, 120, 1)";
+				ctx.font = canvas.width / 80 + "px Arial";
+				ctx.fillText("click and hold to do things.", canvas.width/40, 4.8*canvas.height/40);
+				ctx.fillText("press m to switch mouse modes.", canvas.width/40, 5.8*canvas.height/40);
+				ctx.fillText("press space to pause.", canvas.width/40, 6.8*canvas.height/40);
+				//ctx.fillText("use number keys to change zoom.", canvas.width/50, 8.4*canvas.height/40);
+
+
+			}
+
+			const directions = [[0,1], [0,-1], [1,0], [-1,0], [-1,-1], [-1,1], [1,1], [1,-1]]
+			rps = [1,2,0];
+			colors = ["darkBlue","cyan","blue"];
+			// rps = "01 12 20"; //0 eats 1, 1 eats 2, 2 eats 0,
+			setInterval(function(){
+				if(pause){
+					return;
+				}
+				fillscreen();
+				for(var i = 0; i < arry.length; i++){
+					for(var j = 0; j < arry[i].length; j++){
+						if(i*j == 0 || (i == arry.length-1) || (j == arry[i].length-1)){
+							temparry[i][j] = arry[i][j];
+							continue;
+						}
+						var tally = [0,0,0];
+						for(dir of directions){
+							//try{
+							// console.log(i,j, tally, arry[i][j], dir, arry [i+dir[0]] [j+dir[1]])
+							tally[ arry [i+dir[0]] [j+dir[1]] ] += 1;
+							//} catch(err){
+							//	continue;
+							//}
+						}
+						// if(tally[ rps[arry[i][j]] ]*((Math.random() + 3.5)/4) >= 3){ //ranged random: (3.5-4.5)/4
+						if(tally[ rps[arry[i][j]] ] >= 3){ // not random
+							temparry[i][j] = rps[arry[i][j]];
+						} else{
+							temparry[i][j] = arry[i][j];
+						}
+					}
+				}
+
+				for(var i = 0; i < arry.length; i++){
+					for(var j = 0; j < arry[i].length; j++){
+						arry[i][j] = temparry[i][j];
+						ctx.fillStyle = colors[arry[i][j]];
+						ctx.fillRect(i*size, j*size, size, size);
+					}
+				}
+
+
+			}, 10);
+
+
+			window.onresize = canvasResize;
+			function canvasResize() {
+			  canvas.width  = window.innerWidth;
+			  canvas.height = window.innerHeight;
+			  ctx.fillStyle = '#13171A';
+			  //ctx.fillStyle = canvascolor;
+			  ctx.fillRect(0, 0, canvas.width, canvas.height);
+			}
+
+		</script>
+	</body>
+</html>
