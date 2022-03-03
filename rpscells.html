@@ -3,7 +3,8 @@
 	<body style="padding:0;margin:0;overflow: hidden;">
 		<canvas id="screen"></canvas>
 		<script>
-			canvascolor = "rgba(19, 23, 26, 1)";
+			// canvascolor = "rgba(19, 23, 26, 1)";
+			canvascolor = "rgba(255,255,255,1)";
 			var canvas = document.getElementById('screen');
 			var ctx = canvas.getContext('2d');
 
@@ -24,10 +25,10 @@
 				}
 			}
 
-			var temparry = Array(Math.round(canvas.height));
+			var temporarry = Array(Math.round(canvas.height));
 
 			for(var i=0; i<arry.length; i++) {
-				temparry[i] = Array(Math.round(canvas.width));
+				temporarry[i] = Array(Math.round(canvas.width));
 			}
 
 			canvas.addEventListener('mousedown', onClick);
@@ -66,23 +67,10 @@
 				click = false;
 			}
 
-			class Item{
-				constructor(x, y){
-					this.x = x;
-					this.y = y;
-				}
-				calc(){
-
-				}
-				draw(){
-
-				}
-			}
-
 
 			function fillscreen(){
 				ctx.fillStyle = canvascolor;
-				ctx.fillRect(0, 0, canvas.width, canvas.height);
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
 				// ctx.font = canvas.width / 30 + "px Arial";
 				// ctx.fillStyle = "rgba(255, 245, 80, 1)";
 				//
@@ -104,54 +92,92 @@
 			const directions = [[0,1], [0,-1], [1,0], [-1,0], [-1,-1], [-1,1], [1,1], [1,-1]]
 			rps = [1,2,0];
 			colors = ["darkBlue","cyan","blue"];
-			// rps = "01 12 20"; //0 eats 1, 1 eats 2, 2 eats 0,
+			pastPerf = new Array(16);
+
 			setInterval(function(){
 				if(pause){
 					return;
 				}
 				fillscreen();
+				// var test = Date.now();
+
 				for(var i = 0; i < arry.length; i++){
 					for(var j = 0; j < arry[i].length; j++){
 						if(i*j == 0 || (i == arry.length-1) || (j == arry[i].length-1)){
-							temparry[i][j] = arry[i][j];
+							temporarry[i][j] = arry[i][j];
 							continue;
 						}
 						var tally = [0,0,0];
-						for(dir of directions){
+						for(var k = 0; k < directions.length; k++){
 							//try{
 							// console.log(i,j, tally, arry[i][j], dir, arry [i+dir[0]] [j+dir[1]])
-							tally[ arry [i+dir[0]] [j+dir[1]] ] += 1;
+							if(k <=3){
+								tally[ arry [i+directions[k][0]] [j+directions[k][1]] ] += 1;
+						  } else{
+								tally[ arry [i+directions[k][0]] [j+directions[k][1]] ] += 0.7;
+							}
 							//} catch(err){
 							//	continue;
 							//}
 						}
-						// if(tally[ rps[arry[i][j]] ]*((Math.random() + 3.5)/4) >= 3){ //ranged random: (3.5-4.5)/4
-						if(tally[ rps[arry[i][j]] ] >= 3){ // not random
-							temparry[i][j] = rps[arry[i][j]];
+						if(tally[ rps[arry[i][j]] ]*((Math.random() + 1.5)/2) >= 2.0){ //ranged random: (3.5-4.5)/4
+						// if(tally[ rps[arry[i][j]] ] >= 3){ // not random
+						// if(tally[ rps[arry[i][j]] ] >= 1.2 && tally[ rps.indexOf(arry[i][j])]  >= 1.2){ // not random
+							temporarry[i][j] = rps[arry[i][j]];
 						} else{
-							temparry[i][j] = arry[i][j];
+							temporarry[i][j] = arry[i][j];
 						}
 					}
 				}
 
 				for(var i = 0; i < arry.length; i++){
 					for(var j = 0; j < arry[i].length; j++){
-						arry[i][j] = temparry[i][j];
-						// ctx.fillStyle = colors[arry[i][j]];
-						// ctx.fillRect(i*size, j*size, size, size);
+						arry[i][j] = temporarry[i][j];
+
+						// gradient = ctx.createRadialGradient(j, i, 0.7, j, i, 3)//colors[arry[i][j]];
+						// gradient.addColorStop(0, colors[arry[i][j]]);
+						// gradient.addColorStop(1, "rgba(0,0,0,0)");
+						//
+						// ctx.fillStyle = gradient;
+						// ctx.fillRect(j-2, i-2, 5, 5);
 					}
 				}
 
+				// pastPerf.push(Date.now()-test);
+				// pastPerf.shift();
+				// var sum = 0;
+				// pastPerf.forEach((item) => {sum += item});
+				// console.log(Math.round(sum/pastPerf.length));
+
+				///*
+				// var test = Date.now();
 				var imgdat = ctx.createImageData(arry[0].length, arry.length);
+
+				// arrf = arry.flat();
+				// for(let i = 0; i<arrf.length; i++){
+				// 	imgdat.data[i<<2] = [0,0,0][arrf[i]];
+				// 	imgdat.data[1+(i<<2)] = [255,0,0][arrf[i]];
+				// 	imgdat.data[2+(i<<2)] = [255,139,255][arrf[i]];
+				// 	imgdat.data[3+(i<<2)] = 255;
+				// }
+
 				arry.flat().forEach((item, index) => {
-					imgdat.data[4*index] = [0,0,0][item];
-					imgdat.data[4*index+1] = [255,0,0][item];
-					imgdat.data[4*index+2] = [255,139,255][item];
-					imgdat.data[4*index+3] = 255;
+					imgdat.data[index<<2] = [0,0,0][item];
+					imgdat.data[1+(index<<2)] = [255,0,0][item];
+					imgdat.data[2+(index<<2)] = [255,139,255][item];
+					imgdat.data[3+(index<<2)] = 255;
+					// imgdat.splice(index<<2, 4, ...[[0,255,255,255],[0,0,139,255],[0,0,255,255]][item]) //this one doesnt work because typed array
 				});
 				ctx.putImageData(imgdat, 0, 0);
+				//*/
 
-			}, 10);
+				// pastPerf.push(Date.now()-test);
+				// pastPerf.shift();
+				// var sum = 0;
+				// pastPerf.forEach((item) => {sum += item});
+				// console.log(Math.round(sum/pastPerf.length));
+
+			}, 1000/30);
 
 
 			window.onresize = canvasResize;
