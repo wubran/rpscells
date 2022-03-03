@@ -13,6 +13,7 @@
 			var mouseY = 0;
 			var pause = false;
 			var size = 2; // diameter of a cell in pixels
+			var mouseMoved = false;
 
 			canvasResize();
 
@@ -61,10 +62,13 @@
 			function onMouseMove(event){
 			  mouseX = event.pageX;
 			  mouseY = event.pageY;
+				mouseMoved = true;
 			}
 
 			function onMouseLeave(event){
 				click = false;
+				mouseMoved = false;
+
 			}
 
 
@@ -103,24 +107,27 @@
 
 				for(var i = 0; i < arry.length; i++){
 					for(var j = 0; j < arry[i].length; j++){
-						if(i*j == 0 || (i == arry.length-1) || (j == arry[i].length-1)){
+						if(mouseMoved && Math.abs(j-mouseX/size) < 20 && Math.abs(i-mouseY/size) < 20){
 							temporarry[i][j] = arry[i][j];
 							continue;
 						}
 						var tally = [0,0,0];
 						for(var k = 0; k < directions.length; k++){
-							//try{
-							// console.log(i,j, tally, arry[i][j], dir, arry [i+dir[0]] [j+dir[1]])
-							if(k <=3){
-								tally[ arry [i+directions[k][0]] [j+directions[k][1]] ] += 1;
-						  } else{
-								tally[ arry [i+directions[k][0]] [j+directions[k][1]] ] += 0.7;
+							if((i+directions[k][0]) < 0 || (j+directions[k][1]) < 0 || (i+directions[k][0]) >= arry.length || (j+directions[k][1]) >= arry[i].length){
+								continue;
 							}
-							//} catch(err){
-							//	continue;
-							//}
+							// try{
+								// console.log(i,j, tally, arry[i][j], dir, arry [i+dir[0]] [j+dir[1]])
+								if(k <=3){
+									tally[ arry [i+directions[k][0]] [j+directions[k][1]] ] += 1;
+							  } else{
+									tally[ arry [i+directions[k][0]] [j+directions[k][1]] ] += 0.7;
+								}
+							// } catch(err){
+								// continue;
+							// }
 						}
-						if(tally[ rps[arry[i][j]] ]*((Math.random() + 1.5)/2) >= 2.0){ //ranged random: (3.5-4.5)/4
+						if(tally[ rps[arry[i][j]] ]*((Math.random() + 1.5)/2) >= 2.0){//*(20+arry[i][j])/21){ //ranged random: (3.5-4.5)/4
 						// if(tally[ rps[arry[i][j]] ] >= 3){ // not random
 						// if(tally[ rps[arry[i][j]] ] >= 1.2 && tally[ rps.indexOf(arry[i][j])]  >= 1.2){ // not random
 							temporarry[i][j] = rps[arry[i][j]];
@@ -170,7 +177,11 @@
 				});
 				ctx.putImageData(imgdat, 0, 0);
 				//*/
-
+				if(mouseMoved){
+					ctx.lineWidth = 1;
+					ctx.strokeStyle = "rgba(255,255,255,0.8)"
+					ctx.strokeRect(mouseX/size - 20, mouseY/size - 20, 40, 40);
+				}
 				// pastPerf.push(Date.now()-test);
 				// pastPerf.shift();
 				// var sum = 0;
