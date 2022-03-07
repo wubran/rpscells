@@ -12,10 +12,12 @@
 			var mouseX = 0;
 			var mouseY = 0;
 			var pause = false;
-			//var size = 1; // diameter of a cell in pixels
+			const size = 1.5; // diameter of a cell in pixels
 			var mouseMoved = false;
 
 			canvasResize();
+
+			const mouseRange = Math.min(canvas.width, canvas.height)/16;
 
 			var arry = Array(Math.round(canvas.height));
 
@@ -32,9 +34,6 @@
 				temporarry[i] = Array(Math.round(canvas.width));
 			}
 
-			canvas.addEventListener('mousedown', onClick);
-			canvas.addEventListener("mouseup", onRelease);
-			canvas.addEventListener("wheel", scroll)
 			canvas.addEventListener('mouseleave', onMouseLeave);
 			canvas.addEventListener('mousemove', onMouseMove);
 			document.addEventListener('keydown', (event) => {
@@ -50,175 +49,133 @@
 				}
 			}, false);
 
-
-			function onClick(event){
-				click = true;
-			}
-
-			function onRelease(event){
-				click = false;
-			}
-
 			function onMouseMove(event){
-			  mouseX = event.pageX;
-			  mouseY = event.pageY;
+				mouseX = event.pageX/size;
+				mouseY = event.pageY/size;
 				mouseMoved = true;
 			}
 
 			function onMouseLeave(event){
-				click = false;
 				mouseMoved = false;
-
 			}
 
 
 			function fillscreen(){
 				ctx.fillStyle = canvascolor;
 				ctx.clearRect(0, 0, canvas.width, canvas.height);
-				// ctx.font = canvas.width / 30 + "px Arial";
-				// ctx.fillStyle = "rgba(255, 245, 80, 1)";
-				//
-				// ctx.font = canvas.width / 30 + "px Arial";
-				// if(pause){
-      	// 	ctx.fillText("paused", 35*canvas.width/40, 19*canvas.height/20);
-				// }
-				//
-				// ctx.fillStyle = "rgba(255, 245, 120, 1)";
-				// ctx.font = canvas.width / 80 + "px Arial";
-				// ctx.fillText("click and hold to do things.", canvas.width/40, 4.8*canvas.height/40);
-				// ctx.fillText("press m to switch mouse modes.", canvas.width/40, 5.8*canvas.height/40);
-				// ctx.fillText("press space to pause.", canvas.width/40, 6.8*canvas.height/40);
-				//ctx.fillText("use number keys to change zoom.", canvas.width/50, 8.4*canvas.height/40);
-
-
 			}
 
 			const directions = [[0,1], [0,-1], [1,0], [-1,0], [-1,-1], [-1,1], [1,1], [1,-1]]
 			rps = [1,2,0];
 			// colors = ["darkBlue","cyan","blue"];
-			pastPerf = new Array(16);
+
+			perfNum = 16;
+			pastPerf = new Array(perfNum);
+			for(let i = 0; i < perfNum; i++){
+				pastPerf[i] = 0;
+			}
 
 			setInterval(function(){
 				if(pause){
 					return;
 				}
-				fillscreen();
 				var test = Date.now();
+				//console.time();
+				fillscreen();
 
-				for(var i = 0; i < arry.length; i++){
-					for(var j = 0; j < arry[i].length; j++){
-						if(mouseMoved && Math.abs(j-mouseX) < 20 && Math.abs(i-mouseY) < 20){ // no more /size
+				let imgdat = ctx.createImageData(arry[0].length, arry.length);
+
+				for(let i = 0; i < arry.length; i++){
+					//console.timeLog();
+					timesFour = 4*i*arry[0].length;
+					for(let j = 0; j < arry[i].length; j++){
+						if(mouseMoved && Math.abs(j-mouseX) < mouseRange && Math.abs(i-mouseY) < mouseRange){ // no more /size
 							temporarry[i][j] = arry[i][j];
-							continue;
-						}
-						var tally = [0,0,0];
-						for(var k = 0; k < directions.length; k++){
-							if((i+directions[k][0]) < 0 || (j+directions[k][1]) < 0 || (i+directions[k][0]) >= arry.length || (j+directions[k][1]) >= arry[i].length){
-								continue;
-							}
-							// try{
-								// console.log(i,j, tally, arry[i][j], dir, arry [i+dir[0]] [j+dir[1]])
+						} else{
+							let tally = [0,0,0];
+							for(let k = 0; k < directions.length; k++){
+								if((i+directions[k][0]) < 0 || (j+directions[k][1]) < 0 || (i+directions[k][0]) >= arry.length || (j+directions[k][1]) >= arry[i].length){
+									continue;
+								}
 								if(k <=3){
 									tally[ arry [i+directions[k][0]] [j+directions[k][1]] ] += 1;
-							  } else{
+								} else{
 									tally[ arry [i+directions[k][0]] [j+directions[k][1]] ] += 0.7;
 								}
-							// } catch(err){
-								// continue;
-							// }
+
+							}
+							if(tally[ rps[arry[i][j]] ]*((Math.random() + 1.5)/2) >= 2.0){
+							// if(tally[ rps[arry[i][j]] ] >= 3){ // not random
+							// if(tally[ rps[arry[i][j]] ] >= 1.2 && tally[ rps.indexOf(arry[i][j])]  >= 1.2){ // not random
+								temporarry[i][j] = rps[arry[i][j]];
+							} else{
+								temporarry[i][j] = arry[i][j];
+							}
 						}
-						if(tally[ rps[arry[i][j]] ]*((Math.random() + 1.5)/2) >= 2.0){//*(20+arry[i][j])/21){ //ranged random: (3.5-4.5)/4
-						// if(tally[ rps[arry[i][j]] ] >= 3){ // not random
-						// if(tally[ rps[arry[i][j]] ] >= 1.2 && tally[ rps.indexOf(arry[i][j])]  >= 1.2){ // not random
-							temporarry[i][j] = rps[arry[i][j]];
-						} else{
-							temporarry[i][j] = arry[i][j];
-						}
-					}
-				}
-
-				for(var i = 0; i < arry.length; i++){
-					for(var j = 0; j < arry[i].length; j++){
-						arry[i][j] = temporarry[i][j];
-
-						// gradient = ctx.createRadialGradient(j, i, 0.7, j, i, 3)//colors[arry[i][j]];
-						// gradient.addColorStop(0, colors[arry[i][j]]);
-						// gradient.addColorStop(1, "rgba(0,0,0,0)");
-						//
-						// ctx.fillStyle = gradient;
-						// ctx.fillRect(j-2, i-2, 5, 5);
-					}
-				}
-
-				// pastPerf.push(Date.now()-test);
-				// pastPerf.shift();
-				// var sum = 0;
-				// pastPerf.forEach((item) => {sum += item});
-				// console.log(Math.round(sum/pastPerf.length));
-
-				///*
-				var test = Date.now();
-				var imgdat = ctx.createImageData(arry[0].length, arry.length);
-
-				// arrf = arry.flat();
-				// for(let i = 0; i<arrf.length; i++){
-				// 	imgdat.data[i<<2] = [0,0,0][arrf[i]];
-				// 	imgdat.data[1+(i<<2)] = [255,0,0][arrf[i]];
-				// 	imgdat.data[2+(i<<2)] = [255,139,255][arrf[i]];
-				// 	imgdat.data[3+(i<<2)] = 255;
-				// }
-								// /*
-				// arry.flat().forEach((item, index) => { //ditch the forEach nvm its alr fast
-				// 	imgdat.data[index<<2] = [0,0,0][item];
-				// 	imgdat.data[1+(index<<2)] = [255,0,0][item];
-				// 	imgdat.data[2+(index<<2)] = [255,139,255][item];
-				// 	imgdat.data[3+(index<<2)] = 255;
-				// 	// imgdat.splice(index<<2, 4, ...[[0,255,255,255],[0,0,139,255],[0,0,255,255]][item]) //this one doesnt work because typed array
-				// });
-								// */
-
-				// flat = [];
-				// for(let i = 0; i < arry.length; i ++){
-				// 	flat.push(...arry[i]);
-				// }
-				// const test2 = Date.now();
-
-				for(let i = 0; i < arry.length; i ++){
-					timesFour = 4*i*arry[0].length;
-					for(let j = 0; j < arry[0].length; j ++){
-						imgdat.data[timesFour] = [0,0,0][arry[i][j]];
-						imgdat.data[1+timesFour] = [255,0,0][arry[i][j]];
-						imgdat.data[2+timesFour] = [255,139,255][arry[i][j]];
+						imgdat.data[timesFour] = [0,0,0][temporarry[i][j]];
+						imgdat.data[1+timesFour] = [255,0,0][temporarry[i][j]];
+						imgdat.data[2+timesFour] = [255,139,255][temporarry[i][j]];
 						imgdat.data[3+timesFour] = 255;
 						timesFour += 4;
 					}
 				}
-				pastPerf.push(Date.now()-test);
-
 
 				ctx.putImageData(imgdat, 0, 0);
+
+				// here onwards is ~6 ms
+				for(let i = 0; i < arry.length; i++){
+					// arry[i] = new Array(...temporarry[i]);
+					for(let j = 0; j < arry[i].length; j++){
+						arry[i][j] = temporarry[i][j];
+					}
+				}
+
+				// arry = temporarry;
+
+				// let imgdat = ctx.createImageData(arry[0].length, arry.length);
+
+				// for(let i = 0; i < arry.length; i ++){
+				// 	timesFour = 4*i*arry[0].length;
+				// 	for(let j = 0; j < arry[0].length; j ++){
+				// 		imgdat.data[timesFour] = [0,0,0][arry[i][j]];
+				// 		imgdat.data[1+timesFour] = [255,0,0][arry[i][j]];
+				// 		imgdat.data[2+timesFour] = [255,139,255][arry[i][j]];
+				// 		imgdat.data[3+timesFour] = 255;
+				// 		timesFour += 4;
+				// 	}
+				// }
+
 				//*/
 				if(mouseMoved){
 					ctx.lineWidth = 1;
 					ctx.strokeStyle = "rgba(255,255,255,0.8)"
-					ctx.strokeRect(mouseX - 20, mouseY - 20, 40, 40); //mouse coords used to be /size
+					ctx.strokeRect(mouseX - mouseRange, mouseY - mouseRange, 2*mouseRange, 2*mouseRange); //mouse coords used to be /size
 				}
-				pastPerf.shift();
-				var sum = 0;
-				pastPerf.forEach((item) => {sum += item});
-				console.log(Math.round(sum/pastPerf.length));
 
-			}, 1000/60);
+				//console.timeEnd();
+
+				// pastPerf.push(Date.now()-test);
+				// pastPerf.shift();
+				// if(pastPerf.includes(0)){
+				// 	console.log("waiting frame");
+				// 	return;
+				// }
+				// let sum = 0;
+				// pastPerf.forEach((item) => {sum += item});
+				// console.log("fps:", Math.round(1000*perfNum/sum), "  time:", Math.round(sum/perfNum), "  vary:", 
+				// Math.round(Math.max(...pastPerf) - Math.min(...pastPerf)));
+
+			}, 1000/30);
 
 
 			window.onresize = canvasResize;
 			function canvasResize() {
-			  canvas.width  = window.innerWidth;//size;
-			  canvas.height = window.innerHeight;//size;
-			  ctx.fillStyle = '#13171A';
-			  //ctx.fillStyle = canvascolor;
-			  ctx.fillRect(0, 0, canvas.width, canvas.height);
-				// canvas.style = "transform: scale("+size+"); transform-origin: left top;";// translate("+(window.innerWidth/8)+"px,"+(window.innerHeight/8)+"px);";
+			  	canvas.width  = window.innerWidth/size;//size;
+			  	canvas.height = window.innerHeight/size;//size;
+			  	ctx.fillStyle = '#13171A';
+			  	//ctx.fillStyle = canvascolor;
+			  	ctx.fillRect(0, 0, canvas.width, canvas.height);
+				canvas.style = "transform: scale("+size+"); transform-origin: left top;";// translate("+(window.innerWidth/8)+"px,"+(window.innerHeight/8)+"px);";
 				// ctx.scale(2,2);
 				// ctx.scale(size,size);
 			}
