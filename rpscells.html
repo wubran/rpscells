@@ -12,7 +12,7 @@
 			var mouseX = 0;
 			var mouseY = 0;
 			var pause = false;
-			var size = 2; // diameter of a cell in pixels
+			//var size = 1; // diameter of a cell in pixels
 			var mouseMoved = false;
 
 			canvasResize();
@@ -95,7 +95,7 @@
 
 			const directions = [[0,1], [0,-1], [1,0], [-1,0], [-1,-1], [-1,1], [1,1], [1,-1]]
 			rps = [1,2,0];
-			colors = ["darkBlue","cyan","blue"];
+			// colors = ["darkBlue","cyan","blue"];
 			pastPerf = new Array(16);
 
 			setInterval(function(){
@@ -103,11 +103,11 @@
 					return;
 				}
 				fillscreen();
-				// var test = Date.now();
+				var test = Date.now();
 
 				for(var i = 0; i < arry.length; i++){
 					for(var j = 0; j < arry[i].length; j++){
-						if(mouseMoved && Math.abs(j-mouseX/size) < 20 && Math.abs(i-mouseY/size) < 20){
+						if(mouseMoved && Math.abs(j-mouseX) < 20 && Math.abs(i-mouseY) < 20){ // no more /size
 							temporarry[i][j] = arry[i][j];
 							continue;
 						}
@@ -157,7 +157,7 @@
 				// console.log(Math.round(sum/pastPerf.length));
 
 				///*
-				// var test = Date.now();
+				var test = Date.now();
 				var imgdat = ctx.createImageData(arry[0].length, arry.length);
 
 				// arrf = arry.flat();
@@ -167,38 +167,58 @@
 				// 	imgdat.data[2+(i<<2)] = [255,139,255][arrf[i]];
 				// 	imgdat.data[3+(i<<2)] = 255;
 				// }
+								// /*
+				// arry.flat().forEach((item, index) => { //ditch the forEach nvm its alr fast
+				// 	imgdat.data[index<<2] = [0,0,0][item];
+				// 	imgdat.data[1+(index<<2)] = [255,0,0][item];
+				// 	imgdat.data[2+(index<<2)] = [255,139,255][item];
+				// 	imgdat.data[3+(index<<2)] = 255;
+				// 	// imgdat.splice(index<<2, 4, ...[[0,255,255,255],[0,0,139,255],[0,0,255,255]][item]) //this one doesnt work because typed array
+				// });
+								// */
 
-				arry.flat().forEach((item, index) => {
-					imgdat.data[index<<2] = [0,0,0][item];
-					imgdat.data[1+(index<<2)] = [255,0,0][item];
-					imgdat.data[2+(index<<2)] = [255,139,255][item];
-					imgdat.data[3+(index<<2)] = 255;
-					// imgdat.splice(index<<2, 4, ...[[0,255,255,255],[0,0,139,255],[0,0,255,255]][item]) //this one doesnt work because typed array
-				});
+				// flat = [];
+				// for(let i = 0; i < arry.length; i ++){
+				// 	flat.push(...arry[i]);
+				// }
+				// const test2 = Date.now();
+
+				for(let i = 0; i < arry.length; i ++){
+					timesFour = 4*i*arry[0].length;
+					for(let j = 0; j < arry[0].length; j ++){
+						imgdat.data[timesFour] = [0,0,0][arry[i][j]];
+						imgdat.data[1+timesFour] = [255,0,0][arry[i][j]];
+						imgdat.data[2+timesFour] = [255,139,255][arry[i][j]];
+						imgdat.data[3+timesFour] = 255;
+						timesFour += 4;
+					}
+				}
+				pastPerf.push(Date.now()-test);
+
+
 				ctx.putImageData(imgdat, 0, 0);
 				//*/
 				if(mouseMoved){
 					ctx.lineWidth = 1;
 					ctx.strokeStyle = "rgba(255,255,255,0.8)"
-					ctx.strokeRect(mouseX/size - 20, mouseY/size - 20, 40, 40);
+					ctx.strokeRect(mouseX - 20, mouseY - 20, 40, 40); //mouse coords used to be /size
 				}
-				// pastPerf.push(Date.now()-test);
-				// pastPerf.shift();
-				// var sum = 0;
-				// pastPerf.forEach((item) => {sum += item});
-				// console.log(Math.round(sum/pastPerf.length));
+				pastPerf.shift();
+				var sum = 0;
+				pastPerf.forEach((item) => {sum += item});
+				console.log(Math.round(sum/pastPerf.length));
 
-			}, 1000/30);
+			}, 1000/60);
 
 
 			window.onresize = canvasResize;
 			function canvasResize() {
-			  canvas.width  = window.innerWidth/size;
-			  canvas.height = window.innerHeight/size;
+			  canvas.width  = window.innerWidth;//size;
+			  canvas.height = window.innerHeight;//size;
 			  ctx.fillStyle = '#13171A';
 			  //ctx.fillStyle = canvascolor;
 			  ctx.fillRect(0, 0, canvas.width, canvas.height);
-				canvas.style = "transform: scale("+size+"); transform-origin: left top;";// translate("+(window.innerWidth/8)+"px,"+(window.innerHeight/8)+"px);";
+				// canvas.style = "transform: scale("+size+"); transform-origin: left top;";// translate("+(window.innerWidth/8)+"px,"+(window.innerHeight/8)+"px);";
 				// ctx.scale(2,2);
 				// ctx.scale(size,size);
 			}
